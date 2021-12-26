@@ -1,0 +1,32 @@
+{
+    "name": "everyworkflow/auth-bundle",
+    "description": "Auth bundle for every workflow project.",
+    "type": "package",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "EveryWorkflow",
+            "email": "everyworkflow@gmail.com"
+        }
+    ],
+    "require": {
+        "symfony/console": "6.0.*",
+        "lexik/jwt-authentication-bundle": "^2.14",
+        "symfony/security-bundle": "6.0.x"
+    },
+    "autoload": {
+        "psr-4": {
+            "EveryWorkflow\\AuthBundle\\": "./"
+        },
+        "exclude-from-classmap": [
+            "Resources",
+            "Tests"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "EveryWorkflow\\AuthBundle\\Tests\\": "Tests/"
+        }
+    },
+    "minimum-stability": "dev"
+}
