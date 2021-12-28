@@ -78,12 +78,10 @@ class RoleForm extends Form implements RoleFormInterface
             $this->formFieldFactory->createField([
                 'label' => 'Permissions',
                 'name' => 'permissions',
-                'field_type' => 'select_field',
+                'field_type' => 'tree_select_field',
                 'options' => $this->getPermissionOptions(),
-                'treeProps' => [
-                    'treeCheckable' => true,
-                    'showCheckedStrategy' => true,
-                ]
+                'multi_select' => true,
+                'is_searchable' => true,
             ]),
         ];
 

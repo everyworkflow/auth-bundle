@@ -11,10 +11,11 @@ namespace EveryWorkflow\AuthBundle\Repository;
 use EveryWorkflow\MongoBundle\Repository\BaseDocumentRepository;
 use EveryWorkflow\MongoBundle\Support\Attribute\RepositoryAttribute;
 use EveryWorkflow\AuthBundle\Document\RoleDocument;
+use EveryWorkflow\AuthBundle\Document\RoleDocumentInterface;
 use EveryWorkflow\AuthBundle\Model\AuthConfigProviderInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
-#[RepositoryAttribute(documentClass: RoleDocument::class)]
+#[RepositoryAttribute(documentClass: RoleDocument::class, primaryKey: 'code')]
 class RoleRepository extends BaseDocumentRepository implements RoleRepositoryInterface
 {
     protected AuthConfigProviderInterface $authConfigProvider;
@@ -30,13 +31,33 @@ class RoleRepository extends BaseDocumentRepository implements RoleRepositoryInt
     public function getPermissionsForRoles(array $roles): array
     {
         $permissions = [];
-        /* TODO: Currently all permissions are provided to all */
-        foreach ($this->authConfigProvider->getPermissions() as $key1 => $group) {
-            foreach ($group as $key2 => $permission) {
-                $permissions[] = $key1 . '.' . $key2;
+
+        if (in_array('admin', $roles, true) || in_array('ROLE_ADMIN', $roles, true)) {
+            foreach ($this->authConfigProvider->getPermissions() as $key1 => $group) {
+                foreach ($group as $key2 => $permission) {
+                    $permissionCode = $key1 . '.' . $key2;
+                    if (!isset($permissions[$permissionCode])) {
+                        $permissions[$permissionCode] = '';
+                    }
+                }
+            }
+        } else {
+            try {
+                /** @var RoleDocumentInterface[] @rolesData */
+                $rolesData = $this->find([
+                    'code' => ['$in' => $roles],
+                ]);
+                foreach ($rolesData as $roleData) {
+                    foreach ($roleData->getPermissions() as $permission) {
+                        if (!isset($permissions[$permission])) {
+                            $permissions[$permission] = '';
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
             }
         }
 
-        return $permissions;
+        return array_keys($permissions);
     }
 }

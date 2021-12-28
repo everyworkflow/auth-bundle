@@ -103,7 +103,7 @@ const LoginPage = () => {
         };
 
         try {
-            const response = await Remote.post('/auth/login', submitData);
+            const response = await Remote.post('/login', submitData);
             handlePostResponse(response);
         } catch (error: any) {
             AlertAction({
@@ -140,7 +140,7 @@ const LoginPage = () => {
         };
 
         try {
-            const response = await Remote.post('/auth/login/session', submitData);
+            const response = await Remote.post('/login/session', submitData);
             handlePostResponse(response);
         } catch (error: any) {
             AlertAction({
@@ -177,8 +177,8 @@ const LoginPage = () => {
                                     }}>Continue</Button>
                                     {isSessionCleaningRequired && (
                                         <Button type="dashed" disabled={loading} onClick={() => {
-                                            LocalStorage.set('ew_session', undefined);
-                                            LocalStorage.set('ew_auth', undefined);
+                                            LocalStorage.remove('ew_session');
+                                            LocalStorage.remove('ew_auth');
                                             window.location.reload();
                                         }} style={{ marginLeft: 24 }}>Clear session</Button>
                                     )}

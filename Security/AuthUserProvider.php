@@ -8,21 +8,17 @@ declare(strict_types=1);
 
 namespace EveryWorkflow\AuthBundle\Security;
 
-use EveryWorkflow\AuthBundle\Repository\RoleRepositoryInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class AuthUserProvider implements AuthUserProviderInterface
 {
     protected AuthUserInterface $authUser;
-    protected RoleRepositoryInterface $roleRepository;
 
     public function __construct(
-        AuthUserInterface $authUser,
-        RoleRepositoryInterface $roleRepository,
+        AuthUserInterface $authUser
     ) {
         $this->authUser = $authUser;
-        $this->roleRepository = $roleRepository;
     }
 
     public function loadUserByIdentifier(string $identifier): UserInterface
@@ -49,9 +45,6 @@ class AuthUserProvider implements AuthUserProviderInterface
      */
     public function loadUserByIdentifierAndPayload(string $identifier, array $payload): UserInterface
     {
-        if (isset($payload['roles'])) {
-            $payload['permissions'] = $this->roleRepository->getPermissionsForRoles($payload['roles']);
-        }
         $user = (new AuthUser($payload));
         $this->authUser->resetData($payload);
         return $user;

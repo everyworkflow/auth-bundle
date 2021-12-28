@@ -51,6 +51,10 @@ class RoleDocument extends BaseDocument implements RoleDocumentInterface
 
     public function getPermissions(): array
     {
-        return $this->getData(self::KEY_PERMISSIONS) ?? [];
+        $permissions = $this->getData(self::KEY_PERMISSIONS);
+        if ($permissions instanceof \MongoDB\Model\BSONArray) {
+            return $permissions->getArrayCopy();
+        }
+        return [];
     }
 }

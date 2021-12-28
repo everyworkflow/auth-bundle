@@ -12,7 +12,8 @@
     "require": {
         "symfony/console": "6.0.*",
         "lexik/jwt-authentication-bundle": "^2.14",
-        "symfony/security-bundle": "6.0.x"
+        "symfony/security-bundle": "6.0.x",
+        "everyworkflow/mongo-bundle": "dev-main"
     },
     "autoload": {
         "psr-4": {

@@ -24,8 +24,8 @@ class LoginController extends AbstractController
     }
 
     #[EwRoute(
-        path: "auth/login",
-        name: 'auth.login',
+        path: "login",
+        name: 'login',
         methods: 'POST',
         swagger: [
             'description' => 'Login with credentials.',
@@ -114,8 +114,8 @@ class LoginController extends AbstractController
     }
 
     #[EwRoute(
-        path: "auth/login/session",
-        name: 'auth.login.session',
+        path: "login/session",
+        name: 'login.session',
         methods: 'POST',
         swagger: [
             'description' => 'Start JWT session with session token.',
@@ -208,8 +208,8 @@ class LoginController extends AbstractController
     }
 
     #[EwRoute(
-        path: "auth/login/refresh",
-        name: 'auth.login.refresh',
+        path: "login/refresh",
+        name: 'login.refresh',
         methods: 'POST',
         swagger: [
             'description' => 'Refresh JWT token with session_token and refresh_token.',

@@ -23,7 +23,7 @@ class LoginInvokeController extends AbstractController
         $this->authConfigProvider = $authConfigProvider;
     }
 
-    #[EwRoute(path: "auth/login/invoke", name: 'auth.login.invoke', methods: 'POST')]
+    #[EwRoute(path: "login/invoke", name: 'login.invoke', methods: 'POST')]
     public function __invoke(Request $request): JsonResponse
     {
         return new JsonResponse();

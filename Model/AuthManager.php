@@ -10,6 +10,7 @@ namespace EveryWorkflow\AuthBundle\Model;
 
 use EveryWorkflow\AuthBundle\Repository\LoginRepositoryInterface;
 use EveryWorkflow\AuthBundle\Repository\LoginSessionRepositoryInterface;
+use EveryWorkflow\AuthBundle\Repository\RoleRepositoryInterface;
 use EveryWorkflow\AuthBundle\Security\AuthUser;
 use EveryWorkflow\CoreBundle\Model\SystemDateTimeInterface;
 use EveryWorkflow\MongoBundle\Document\BaseDocument;
@@ -26,6 +27,7 @@ class AuthManager implements AuthManagerInterface
     protected BaseDocumentRepositoryInterface $baseDocumentRepository;
     protected LoginRepositoryInterface $loginRepository;
     protected LoginSessionRepositoryInterface $loginSessionRepository;
+    protected RoleRepositoryInterface $roleRepository;
     protected JWTTokenManagerInterface $JWTManager;
     protected SystemDateTimeInterface $systemDateTime;
     protected LoggerInterface $logger;
@@ -35,6 +37,7 @@ class AuthManager implements AuthManagerInterface
         BaseDocumentRepositoryInterface $baseDocumentRepository,
         LoginRepositoryInterface $loginRepository,
         LoginSessionRepositoryInterface $loginSessionRepository,
+        RoleRepositoryInterface $roleRepository,
         JWTTokenManagerInterface $JWTManager,
         SystemDateTimeInterface $systemDateTime,
         LoggerInterface $logger,
@@ -45,6 +48,7 @@ class AuthManager implements AuthManagerInterface
         $this->baseDocumentRepository = $baseDocumentRepository;
         $this->loginRepository = $loginRepository;
         $this->loginSessionRepository = $loginSessionRepository;
+        $this->roleRepository = $roleRepository;
         $this->JWTManager = $JWTManager;
         $this->systemDateTime = $systemDateTime;
         $this->logger = $logger;
@@ -67,10 +71,13 @@ class AuthManager implements AuthManagerInterface
         return $passwordHasherFactory->getPasswordHasher($authUser)->hash($token);
     }
 
-    protected function getDocumentRepository(): BaseDocumentRepositoryInterface
+    protected function getDocumentRepository(?string $collectionName = null): BaseDocumentRepositoryInterface
     {
+        if (null === $collectionName) {
+            $collectionName = $this->collectionName;
+        }
         return $this->baseDocumentRepository->setDocumentClass(BaseDocument::class)
-            ->setCollectionName($this->collectionName);
+            ->setCollectionName($collectionName);
     }
 
     protected function getAuthUserFromDocument(BaseDocument $document): AuthUser
@@ -123,7 +130,7 @@ class AuthManager implements AuthManagerInterface
                 'status' => 'disable',
                 'created_at' => ['$lt' => $this->systemDateTime->nowFormat('-5 minute')],
             ]);
-            $item = $this->getDocumentRepository()->findOne([
+            $item = $this->getDocumentRepository($login->getData('collection_name'))->findOne([
                 $login->getData('username_key') => $login->getData('username')
             ]);
         } catch (Exception $e) {
@@ -133,12 +140,15 @@ class AuthManager implements AuthManagerInterface
 
         $authUser = $this->getAuthUserFromDocument($item);
         $authUser->setData('session_token', $sessionToken);
+        if (count($authUser->getRoles())) {
+            $authUser->setData('permissions', $this->roleRepository->getPermissionsForRoles($authUser->getRoles()));
+        }
         $token = $this->JWTManager->create($authUser);
         $refreshToken = $this->generateToken($authUser);
 
         $loginSession = $this->loginSessionRepository->create([
-            'collection_name' => $this->collectionName,
-            'username_key' => $this->usernameKey,
+            'collection_name' => $login->getData('collection_name'),
+            'username_key' => $login->getData('username_key'),
             'username' => $item->getData($login->getData('username_key')),
             // 'user_agent' => $request->headers->get('user-agent'),
             'name' => $sessionName,
@@ -169,8 +179,8 @@ class AuthManager implements AuthManagerInterface
                 'session_token' => $session_token,
                 'refresh_token' => $refresh_token,
                 'status' => 'enable',
-                'created_at' => ['$gt' => $this->systemDateTime->nowFormat('-90 days')],
-                'updated_at' => ['$gt' => $this->systemDateTime->nowFormat('-7 days')],
+                'created_at' => ['$gt' => $this->systemDateTime->nowFormat('-90 days')], // Keep out 3 months old sessions
+                'updated_at' => ['$gt' => $this->systemDateTime->nowFormat('-7 days')], // Keep out 7 days untouched sessions
             ]);
             $item = $this->getDocumentRepository()->findOne([
                 $loginSession->getData('username_key') => $loginSession->getData('username')
@@ -182,6 +192,9 @@ class AuthManager implements AuthManagerInterface
 
         $authUser = $this->getAuthUserFromDocument($item);
         $authUser->setData('session_token', $session_token);
+        if (count($authUser->getRoles())) {
+            $authUser->setData('permissions', $this->roleRepository->getPermissionsForRoles($authUser->getRoles()));
+        }
         $newToken = $this->JWTManager->create($authUser);
         $newRefreshToken = $this->generateToken($authUser);
 

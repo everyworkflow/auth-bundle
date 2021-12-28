@@ -22,7 +22,7 @@ const SUBMIT_SAVE_CHANGES_AND_CONTINUE = 'save_changes_and_continue';
 
 const RoleFormPage = () => {
     const { dispatch: panelDispatch } = useContext(PanelContext);
-    const { uuid = '' }: { uuid: string | undefined } = useParams();
+    const { uuid = '' }: any = useParams();
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [dataForm, setDataForm] = useState<DataFormInterface>();
@@ -135,11 +135,8 @@ const RoleFormPage = () => {
                         formType={FORM_TYPE_HORIZONTAL}
                         onSubmit={onSubmit}
                         formFieldMaps={{
-                          permissions: lazy(
-                            () => import('@EveryWorkflow/DataFormBundle/Field/MultiSelect')
-                          )
                         //   permissions: lazy(
-                        //     () => import('@EveryWorkflow/AuthBundle/Admin/Page/RoleFormPage/PermissionsField')
+                        //     () => import('@EveryWorkflow/DataFormBundle/Field/TreeSelectField')
                         //   )
                         }}
                     />
