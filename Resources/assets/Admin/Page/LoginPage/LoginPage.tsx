@@ -22,7 +22,6 @@ const loginFormData: any = {
             name: 'username',
             field_type: 'text_field',
             input_type: 'email',
-            value: 'admin@example.com',
             allow_clear: true
         },
         {
@@ -30,7 +29,6 @@ const loginFormData: any = {
             name: 'password',
             field_type: 'text_field',
             input_type: 'password',
-            value: 'admin@123',
             allow_clear: true
         }
     ],
@@ -42,7 +40,6 @@ const sessionFormData: any = {
             label: 'Session name',
             name: 'session_name',
             field_type: 'text_field',
-            value: 'Not defined',
             allow_clear: true
         }
     ],
@@ -107,8 +104,8 @@ const LoginPage = () => {
             handlePostResponse(response);
         } catch (error: any) {
             AlertAction({
-                message: error.message,
-                title: 'Submit error',
+                description: error.message,
+                message: 'Submit error',
                 type: ALERT_TYPE_ERROR,
             });
             setLoading(false);
@@ -129,12 +126,12 @@ const LoginPage = () => {
         const handlePostResponse = (response: any) => {
             if (response.token) {
                 LocalStorage.set('ew_auth', response);
-                panelDispatch({ type: ACTION_SET_AUTH, payload: response });
                 AlertAction({
-                    message: 'You have been successfully logged in.',
-                    title: 'Login success',
+                    description: 'You have been successfully logged in.',
+                    message: 'Login success',
                     type: ALERT_TYPE_SUCCESS,
                 });
+                panelDispatch({ type: ACTION_SET_AUTH, payload: response });
             }
             setLoading(false);
         };
@@ -144,8 +141,8 @@ const LoginPage = () => {
             handlePostResponse(response);
         } catch (error: any) {
             AlertAction({
-                message: error.message,
-                title: 'Submit error',
+                description: error.message,
+                message: 'Submit error',
                 type: ALERT_TYPE_ERROR,
             });
             setIsSessionCleaningRequired(true);
@@ -170,6 +167,9 @@ const LoginPage = () => {
                                         formId={'start-session-form'}
                                         form={form}
                                         formData={sessionFormData}
+                                        initialValues={{
+                                            session_name: 'Not defined',
+                                        }}
                                         onSubmit={onSessionSubmit}
                                     />
                                     <Button type="primary" disabled={loading} onClick={() => {
@@ -190,6 +190,10 @@ const LoginPage = () => {
                                         formId={'login-form'}
                                         form={form}
                                         formData={loginFormData}
+                                        initialValues={{
+                                            username: 'admin@example.com',
+                                            password: 'admin@123',
+                                        }}
                                         onSubmit={onLoginSubmit}
                                     />
                                     <Button type="primary" disabled={loading} onClick={() => {

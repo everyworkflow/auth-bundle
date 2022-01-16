@@ -1,0 +1,10 @@
+setting:
+    menu:
+        jwt:
+            label: Json Web Token
+            parent: security
+            # form_class: EveryWorkflow\SettingBundle\Form\General\WebSettingForm
+        mfa:
+            label: Multi-factor Authentication
+            parent: security
+            # form_class: EveryWorkflow\SettingBundle\Form\General\WebSettingForm

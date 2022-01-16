@@ -25,6 +25,8 @@ class Configuration implements ConfigurationInterface
                     ->useAttributeAsKey('type')
                     ->arrayPrototype()
                     ->scalarPrototype()
+                    ->end()
+                    ->end()
                 ->end()
             ->end();
 

@@ -26,9 +26,6 @@ return function (ContainerConfigurator $configurator) {
     $services->load('EveryWorkflow\\AuthBundle\\', '../../*')
         ->exclude('../../{DependencyInjection,Resources,Tests}');
 
-    $services->set(AuthConfigProvider::class)
-        ->arg('$configs', '%auth%');
-
     $services->set('ew.auth.authenticator', AuthAuthenticator::class)
         ->parent('lexik_jwt_authentication.security.jwt_authenticator');
 

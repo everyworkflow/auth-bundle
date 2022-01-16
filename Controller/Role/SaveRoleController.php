@@ -74,7 +74,7 @@ class SaveRoleController extends AbstractController
         $item = $this->roleRepository->saveOne($item);
 
         return new JsonResponse([
-            'message' => 'Successfully saved changes.',
+            'detail' => 'Successfully saved changes.',
             'item' => $item->toArray(),
         ]);
     }

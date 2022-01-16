@@ -7,43 +7,4 @@ auth:
       view: View Role
       list: List Role
       save: Save Role
-    scope:
-      view: View scope
-      list: List scope
-      save: Save scope
-    user:
-      view: View User
-      list: List User
-      save: Save User
-    cms.page:
-      view: View Cms page
-      list: List Cms page
-      save: Save Cms page
-    cms.static_block:
-      view: View Cms static block
-      list: List Cms static block
-      save: Save Cms static block
-    customer:
-      view: View Customer
-      list: List Customer
-      save: Save Customer
-    catalog.category:
-      view: View Catalog category
-      list: List Catalog category
-      save: Save Catalog category
-    catalog.product:
-      view: View Catalog product
-      list: List Catalog product
-      save: Save Catalog product
-    sales.order:
-      view: View Sales order
-      list: List Sales order
-      save: Save Sales order
-    eav.attribute:
-      view: View Attribute
-      list: List Attribute
-      save: Save Attribute
-    eav.entity:
-      view: View Attribute
-      list: List Attribute
-      save: Save Attribute
+      delete: Delete Role

@@ -12,6 +12,7 @@ use EveryWorkflow\AuthBundle\Model\AuthConfigProviderInterface;
 use EveryWorkflow\CoreBundle\Model\DataObjectInterface;
 use EveryWorkflow\DataFormBundle\Factory\FieldOptionFactoryInterface;
 use EveryWorkflow\DataFormBundle\Factory\FormFieldFactoryInterface;
+use EveryWorkflow\DataFormBundle\Factory\FormSectionFactoryInterface;
 use EveryWorkflow\DataFormBundle\Field\Select\Option;
 use EveryWorkflow\DataFormBundle\Model\Form;
 
@@ -22,11 +23,12 @@ class RoleForm extends Form implements RoleFormInterface
 
     public function __construct(
         DataObjectInterface $dataObject,
+        FormSectionFactoryInterface $formSectionFactory,
         FormFieldFactoryInterface $formFieldFactory,
         AuthConfigProviderInterface $authConfigProvider,
         FieldOptionFactoryInterface $fieldOptionFactory
     ) {
-        parent::__construct($dataObject, $formFieldFactory);
+        parent::__construct($dataObject, $formSectionFactory, $formFieldFactory);
         $this->authConfigProvider = $authConfigProvider;
         $this->fieldOptionFactory = $fieldOptionFactory;
     }
@@ -57,25 +59,57 @@ class RoleForm extends Form implements RoleFormInterface
         return $options;
     }
 
-    public function getFields(): array
+    /**
+     * @return BaseSectionInterface[]
+     */
+    public function getSections(): array
+    {
+        $sections = [
+            $this->getFormSectionFactory()->create([
+                'section_type' => 'card_section',
+                'title' => 'General',
+            ])->setFields($this->getGeneralFields()),
+        ];
+        return array_merge($sections, parent::getSections());
+    }
+
+    protected function getGeneralFields(): array
     {
         $fields = [
-            $this->formFieldFactory->createField([
+            $this->formFieldFactory->create([
                 'label' => 'UUID',
                 'name' => '_id',
                 'is_readonly' => true,
             ]),
-            $this->formFieldFactory->createField([
+            $this->formFieldFactory->create([
                 'label' => 'Name',
                 'name' => 'name',
                 'field_type' => 'text_field',
+                'is_required' => true,
             ]),
-            $this->formFieldFactory->createField([
+            $this->formFieldFactory->create([
                 'label' => 'Code',
                 'name' => 'code',
                 'field_type' => 'text_field',
+                'is_required' => true,
             ]),
-            $this->formFieldFactory->createField([
+            $this->formFieldFactory->create([
+                'label' => 'Status',
+                'name' => 'status',
+                'field_type' => 'select_field',
+                'options' => [
+                    $this->fieldOptionFactory->create(Option::class, [
+                        'key' => 'enable',
+                        'value' => 'Enable',
+                    ]),
+                    $this->fieldOptionFactory->create(Option::class, [
+                        'key' => 'disable',
+                        'value' => 'Disable',
+                    ]),
+                ],
+                'sort_order' => 2,
+            ]),
+            $this->formFieldFactory->create([
                 'label' => 'Permissions',
                 'name' => 'permissions',
                 'field_type' => 'tree_select_field',
@@ -90,6 +124,6 @@ class RoleForm extends Form implements RoleFormInterface
             $field->setSortOrder($sortOrder++);
         }
 
-        return array_merge($fields, parent::getFields());
+        return $fields;
     }
 }
