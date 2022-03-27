@@ -23,37 +23,20 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AuthManager implements AuthManagerInterface
 {
-    protected UserPasswordHasherInterface $userPasswordHasher;
-    protected BaseDocumentRepositoryInterface $baseDocumentRepository;
-    protected LoginRepositoryInterface $loginRepository;
-    protected LoginSessionRepositoryInterface $loginSessionRepository;
-    protected RoleRepositoryInterface $roleRepository;
-    protected JWTTokenManagerInterface $JWTManager;
-    protected SystemDateTimeInterface $systemDateTime;
-    protected LoggerInterface $logger;
-
     public function __construct(
-        UserPasswordHasherInterface $userPasswordHasher,
-        BaseDocumentRepositoryInterface $baseDocumentRepository,
-        LoginRepositoryInterface $loginRepository,
-        LoginSessionRepositoryInterface $loginSessionRepository,
-        RoleRepositoryInterface $roleRepository,
-        JWTTokenManagerInterface $JWTManager,
-        SystemDateTimeInterface $systemDateTime,
-        LoggerInterface $logger,
-        string $collectionName = 'user_entity_collection',
-        string $usernameKey = 'email'
+        protected UserPasswordHasherInterface $userPasswordHasher,
+        protected BaseDocumentRepositoryInterface $baseDocumentRepository,
+        protected LoginRepositoryInterface $loginRepository,
+        protected LoginSessionRepositoryInterface $loginSessionRepository,
+        protected RoleRepositoryInterface $roleRepository,
+        protected JWTTokenManagerInterface $JWTManager,
+        protected SystemDateTimeInterface $systemDateTime,
+        protected LoggerInterface $logger,
+        protected string $collectionName = 'user_entity_collection',
+        protected string $usernameKey = 'email',
+        protected string $authType = 'user',
+        protected array $additionalKeys = ['first_name', 'last_name']
     ) {
-        $this->userPasswordHasher = $userPasswordHasher;
-        $this->baseDocumentRepository = $baseDocumentRepository;
-        $this->loginRepository = $loginRepository;
-        $this->loginSessionRepository = $loginSessionRepository;
-        $this->roleRepository = $roleRepository;
-        $this->JWTManager = $JWTManager;
-        $this->systemDateTime = $systemDateTime;
-        $this->logger = $logger;
-        $this->collectionName = $collectionName;
-        $this->usernameKey = $usernameKey;
     }
 
     protected function generateToken(AuthUser $authUser): string
@@ -82,9 +65,18 @@ class AuthManager implements AuthManagerInterface
 
     protected function getAuthUserFromDocument(BaseDocument $document): AuthUser
     {
-        $itemData = $document->toArray();
-        $itemData['username'] = $itemData[$this->usernameKey];
-        return new AuthUser($itemData);
+        $authUser = new AuthUser();
+        $authUser->setId($document->getId());
+        $authUser->setUsername($document->getData($this->usernameKey));
+        $authUser->setRoles($document->getData('roles') ?? []);
+        $authUser->setPermissions($this->roleRepository->getPermissionsForRoles($authUser->getRoles()));
+        $authUser->setAuthType($this->authType);
+        foreach ($this->additionalKeys as $key) {
+            if ($document->getData($key)) {
+                $authUser->setData($key, $document->getData($key));
+            }
+        }
+        return $authUser;
     }
 
     /**
@@ -98,7 +90,7 @@ class AuthManager implements AuthManagerInterface
             throw new Exception('Invalid credentials.');
         }
 
-        $authUser = $this->getAuthUserFromDocument($item);
+        $authUser = new AuthUser($item->toArray());
         if (!$this->userPasswordHasher->isPasswordValid($authUser, $password)) {
             throw new Exception('Invalid credentials.');
         }
@@ -140,9 +132,6 @@ class AuthManager implements AuthManagerInterface
 
         $authUser = $this->getAuthUserFromDocument($item);
         $authUser->setData('session_token', $sessionToken);
-        if (count($authUser->getRoles())) {
-            $authUser->setData('permissions', $this->roleRepository->getPermissionsForRoles($authUser->getRoles()));
-        }
         $token = $this->JWTManager->create($authUser);
         $refreshToken = $this->generateToken($authUser);
 
@@ -172,12 +161,12 @@ class AuthManager implements AuthManagerInterface
     /**
      * @throws Exception
      */
-    public function refreshJWT(string $session_token, string $refresh_token): array
+    public function refreshJWT(string $sessionToken, string $refreshToken): array
     {
         try {
             $loginSession = $this->loginSessionRepository->findOne([
-                'session_token' => $session_token,
-                'refresh_token' => $refresh_token,
+                'session_token' => $sessionToken,
+                'refresh_token' => $refreshToken,
                 'status' => 'enable',
                 'created_at' => ['$gt' => $this->systemDateTime->nowFormat('-90 days')], // Keep out 3 months old sessions
                 'updated_at' => ['$gt' => $this->systemDateTime->nowFormat('-7 days')], // Keep out 7 days untouched sessions
@@ -191,9 +180,10 @@ class AuthManager implements AuthManagerInterface
         }
 
         $authUser = $this->getAuthUserFromDocument($item);
-        $authUser->setData('session_token', $session_token);
+        $authUser->setType($this->authType);
+        $authUser->setData('session_token', $sessionToken);
         if (count($authUser->getRoles())) {
-            $authUser->setData('permissions', $this->roleRepository->getPermissionsForRoles($authUser->getRoles()));
+            $authUser->setPermissions($this->roleRepository->getPermissionsForRoles($authUser->getRoles()));
         }
         $newToken = $this->JWTManager->create($authUser);
         $newRefreshToken = $this->generateToken($authUser);
@@ -203,7 +193,7 @@ class AuthManager implements AuthManagerInterface
         $this->loginSessionRepository->saveOne($loginSession);
 
         return [
-            'session_token' => $session_token,
+            'session_token' => $sessionToken,
             'refresh_token' => $newRefreshToken,
             'token' => $newToken,
         ];

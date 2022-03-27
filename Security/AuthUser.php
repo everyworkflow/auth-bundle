@@ -13,9 +13,16 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class AuthUser extends DataObject implements AuthUserInterface
 {
-    public function getUsername(): ?string
+    public function setId(string $id): self
     {
-        return $this->getData(self::KEY_USERNAME);
+        $this->setData(self::KEY_ID, $id);
+
+        return $this;
+    }
+
+    public function getId(): ?string
+    {
+        return $this->getData(self::KEY_ID);
     }
 
     public function setUsername(string $username): self
@@ -23,6 +30,11 @@ class AuthUser extends DataObject implements AuthUserInterface
         $this->setData(self::KEY_USERNAME, $username);
 
         return $this;
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->getData(self::KEY_USERNAME);
     }
 
     public function getUserIdentifier(): string
@@ -52,6 +64,13 @@ class AuthUser extends DataObject implements AuthUserInterface
         $this->setData(self::KEY_PASSWORD, null);
     }
 
+    public function setRoles(array $roles): self
+    {
+        $this->setData(self::KEY_ROLES, $roles);
+
+        return $this;
+    }
+
     public function getRoles(): array
     {
         $roles = $this->getData(self::KEY_ROLES);
@@ -61,11 +80,28 @@ class AuthUser extends DataObject implements AuthUserInterface
         return $roles ?? [];
     }
 
-    public function setRoles(array $roles): self
+    public function setPermissions(array $permissions): self
     {
-        $this->setData(self::KEY_ROLES, $roles);
+        $this->setData(self::KEY_PERMISSIONS, $permissions);
 
         return $this;
+    }
+
+    public function getPermissions(): array
+    {
+        return $this->getData(self::KEY_PERMISSIONS) ?? [];
+    }
+
+    public function setAuthType(string $authType): self
+    {
+        $this->setData(self::KEY_AUTH_TYPE, $authType);
+
+        return $this;
+    }
+
+    public function getAuthType(): ?string
+    {
+        return $this->getData(self::KEY_AUTH_TYPE);
     }
 
     public function isEqualTo(UserInterface $user): bool

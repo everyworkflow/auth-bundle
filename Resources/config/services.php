@@ -41,6 +41,9 @@ return function (ContainerConfigurator $configurator) {
             'method' => 'onKernelController',
         ]);
 
+    $services->set(\EveryWorkflow\AuthBundle\Model\AuthManager::class)
+        ->arg('$authType', 'admin');
+
     $services->set('ew_auth_role_grid_config', RoleGridConfig::class);
     $services->set('ew_auth_role_grid_source', RepositorySource::class)
         ->arg('$baseRepository', service(RoleRepository::class))
