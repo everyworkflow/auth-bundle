@@ -13,6 +13,7 @@ use EveryWorkflow\AuthBundle\Repository\RoleRepositoryInterface;
 use EveryWorkflow\CoreBundle\Annotation\EwRoute;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 class GetRoleController extends AbstractController
 {
@@ -42,11 +43,9 @@ class GetRoleController extends AbstractController
             ]
         ]
     )]
-    public function __invoke(string $uuid = 'create'): JsonResponse
+    public function __invoke(Request $request, string $uuid = 'create'): JsonResponse
     {
-        $data = [
-            'data_form' => $this->roleForm->toArray(),
-        ];
+        $data = [];
 
         if ('create' !== $uuid) {
             try {
@@ -55,6 +54,10 @@ class GetRoleController extends AbstractController
             } catch (\Exception $e) {
                 // ignore if _id doesn't exist
             }
+        }
+
+        if ($request->get('for') === 'data-form') {
+            $data['data_form'] = $this->roleForm->toArray();
         }
 
         return new JsonResponse($data);
